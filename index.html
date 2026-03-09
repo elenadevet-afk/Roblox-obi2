@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Game Editor v6.0</title>
+    <style>
+        body { font-family: sans-serif; display: flex; height: 100vh; margin: 0; background: #111; color: white; }
+        #sidebar { width: 350px; padding: 20px; background: #222; overflow-y: auto; border-right: 2px solid #bc13fe; }
+        input { width: 100%; padding: 10px; margin: 10px 0; background: #000; color: #00f7ff; border: 1px solid #444; }
+        #preview { flex-grow: 1; padding: 20px; }
+        iframe { width: 100%; height: 600px; border: 2px solid #444; background: #000; }
+        .btn-copy { background: #bc13fe; color: white; padding: 15px; width: 100%; border: none; cursor: pointer; font-weight: bold; }
+    </style>
+</head>
+<body>
+    <div id="sidebar">
+        <h2>Editor v6.0</h2>
+        <label>Hero Image URL:</label>
+        <input type="text" id="hero" value="https://cdn-icons-png.flaticon.com/512/616/616430.png">
+        <label>Platform Color:</label>
+        <input type="color" id="color" value="#bc13fe">
+        <button class="btn-copy" onclick="copyCode()">COPY FOR GENIALLY</button>
+    </div>
+    <div id="preview">
+        <iframe id="game-frame"></iframe>
+    </div>
+
+    <script>
+        // ЗАМЕНИ ЭТО НА СВОЮ ССЫЛКУ ПОСЛЕ ЗАГРУЗКИ НА GITHUB
+        const GITHUB_URL = "https://ТВОЙ_ЛОГИН.github.io/ТВОЙ_РЕПО/game.html";
+
+        function getCode() {
+            const data = {
+                hero: document.getElementById('hero').value,
+                color: document.getElementById('color').value,
+                tasks: [
+                    { q: "Book?", a: ["Книга", "Стол", "Стул"], c: 0 },
+                    // ... добавь остальные 13 здесь по аналогии
+                ]
+            };
+            const encoded = encodeURIComponent(JSON.stringify(data));
+            return `<iframe src="${GITHUB_URL}?data=${encoded}" style="width:100%; height:600px; border:none;"></iframe>`;
+        }
+
+        function update() {
+            const code = getCode();
+            const url = code.match(/src="([^"]+)"/)[1];
+            document.getElementById('game-frame').src = url;
+        }
+
+        function copyCode() {
+            const el = document.createElement('textarea');
+            el.value = getCode();
+            document.body.appendChild(el);
+            el.select();
+            document.execCommand('copy');
+            document.body.removeChild(el);
+            alert("Скопировано! Вставь это в Genially через Insert -> Others");
+        }
+
+        setInterval(update, 2000);
+    </script>
+</body>
+</html>
