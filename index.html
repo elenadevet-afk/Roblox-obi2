@@ -2,85 +2,119 @@
 <html lang="ru">
 <head>
     <meta charset="UTF-8">
-    <title>Genially Game Builder v7.0</title>
+    <title>Ultimate Game Builder v8.0</title>
     <style>
-        body { font-family: sans-serif; margin: 0; display: flex; height: 100vh; background: #111; color: white; }
-        #panel { width: 350px; background: #1a1a1a; padding: 20px; overflow-y: auto; border-right: 2px solid #bc13fe; }
-        .card { background: #252525; padding: 10px; border-radius: 8px; margin-bottom: 10px; border-left: 4px solid #bc13fe; }
-        input { width: 100%; padding: 8px; margin: 5px 0; background: #000; color: #00f7ff; border: 1px solid #444; border-radius: 4px; }
-        #view { flex-grow: 1; padding: 20px; background: #000; display: flex; flex-direction: column; }
-        .win { flex-grow: 1; border: 1px solid #333; border-radius: 10px; overflow: hidden; background: #050505; }
-        .btn-copy { background: #bc13fe; color: white; padding: 15px; width: 100%; border: none; border-radius: 8px; cursor: pointer; font-weight: bold; font-size: 16px; }
+        :root { --accent: #bc13fe; --bg: #111; }
+        body { font-family: 'Segoe UI', sans-serif; margin: 0; display: flex; height: 100vh; background: var(--bg); color: #fff; }
+        #panel { width: 380px; background: #1a1a1a; padding: 20px; overflow-y: auto; border-right: 2px solid var(--accent); box-shadow: 5px 0 15px rgba(0,0,0,0.5); }
+        .card { background: #252525; padding: 12px; border-radius: 10px; margin-bottom: 10px; border-left: 5px solid var(--accent); }
+        input { width: 100%; padding: 10px; margin: 5px 0; border-radius: 6px; border: 1px solid #444; background: #000; color: #00f7ff; box-sizing: border-box; font-weight: bold; }
+        label { font-size: 12px; color: #888; text-transform: uppercase; margin-top: 10px; display: block; }
+        #view { flex-grow: 1; padding: 20px; display: flex; flex-direction: column; background: #000; }
+        .win-frame { flex-grow: 1; border: 1px solid #333; border-radius: 15px; overflow: hidden; background: #050505; }
+        .btn-copy { background: var(--accent); color: white; padding: 18px; width: 100%; border: none; border-radius: 12px; cursor: pointer; font-weight: bold; font-size: 16px; margin-top: 20px; transition: 0.3s; }
+        .btn-copy:hover { background: #d047ff; transform: scale(1.02); }
+        .lang-switch { float: right; background: #333; color: #fff; border: 1px solid #555; padding: 5px 15px; border-radius: 20px; cursor: pointer; font-size: 12px; }
     </style>
 </head>
 <body>
 
 <div id="panel">
-    <h2>Editor v7.0</h2>
-    <label>Ссылка на героя (PNG):</label>
-    <input type="text" id="h-url" value="https://cdn-icons-png.flaticon.com/512/616/616430.png" oninput="draw()">
-    <label>Цвет (HEX):</label>
-    <input type="color" id="h-col" value="#bc13fe" oninput="draw()">
+    <button class="lang-switch" onclick="toggleLang()">EN / RU</button>
+    <h2 id="t-title">Редактор v8.0</h2>
     
+    <label id="l-hero">Герой (PNG URL):</label>
+    <input type="text" id="h-url" value="https://cdn-icons-png.flaticon.com/512/616/616430.png" oninput="refresh()">
+    
+    <label id="l-col">Цвет платформ:</label>
+    <input type="color" id="h-col" value="#bc13fe" oninput="refresh()">
+
+    <label id="l-win">Сообщение при победе:</label>
+    <input type="text" id="m-win" value="EXCELLENT! MISSION COMPLETE" oninput="refresh()">
+
+    <label id="l-lose">Сообщение при проигрыше:</label>
+    <input type="text" id="m-lose" value="GAME OVER! TRY AGAIN" oninput="refresh()">
+    
+    <h3 id="t-qs">Задания (14):</h3>
     <div id="q-list"></div>
-    <button class="btn-copy" onclick="copyIt()">КОПИРОВАТЬ ДЛЯ GENIALLY</button>
+    
+    <button class="btn-copy" onclick="copyIt()" id="t-copy">КОПИРОВАТЬ ДЛЯ GENIALLY</button>
 </div>
 
 <div id="view">
-    <h3>Предпросмотр (Live Preview):</h3>
-    <div id="f-box" class="win"></div>
+    <h3 id="t-pre">Предпросмотр (Live Preview):</h3>
+    <div id="f-box" class="win-frame"></div>
 </div>
 
 <script>
-    // 14 простых заданий по умолчанию
+    let lang = 'ru';
+    const ui = {
+        ru: { title: "Редактор v8.0", hero: "Герой (PNG URL)", col: "Цвет платформ", win: "Победа", lose: "Проигрыш", qs: "Задания (14)", pre: "Предпросмотр", copy: "КОПИРОВАТЬ ДЛЯ GENIALLY", alert: "Код скопирован!" },
+        en: { title: "Editor v8.0", hero: "Hero (PNG URL)", col: "Platform Color", win: "Win Message", lose: "Lose Message", qs: "Questions (14)", pre: "Live Preview", copy: "COPY FOR GENIALLY", alert: "Code copied!" }
+    };
+
     let qs = [
-        {q:"Apple?", a:["Яблоко","Груша","Банан"], c:0},
-        {q:"Cat?", a:["Собака","Кот","Лев"], c:1},
-        {q:"Red?", a:["Синий","Красный","Зеленый"], c:1},
-        {q:"One+One?", a:["1","2","3"], c:1},
+        {q:"Book?", a:["Книга","Ручка","Стол"], c:0},
+        {q:"I ___ happy.", a:["is","am","are"], c:1},
+        {q:"Red?", a:["Синий","Красный","Белый"], c:1},
+        {q:"Apple?", a:["Яблоко","Груша","Слива"], c:0},
+        {q:"Home?", a:["Дом","Лес","Сад"], c:0},
+        {q:"One + Two?", a:["Two","Three","Four"], c:1},
+        {q:"Cat?", a:["Собака","Кот","Мышь"], c:1},
         {q:"Sun?", a:["Луна","Звезда","Солнце"], c:2},
         {q:"Water?", a:["Вода","Огонь","Земля"], c:0},
         {q:"Big?", a:["Малый","Большой","Средний"], c:1},
         {q:"Mother?", a:["Папа","Мама","Брат"], c:1},
         {q:"Green?", a:["Зеленый","Желтый","Серый"], c:0},
         {q:"Friend?", a:["Враг","Друг","Сосед"], c:1},
-        {q:"Jump?", a:["Бег","Прыжок","Сон"], c:1},
-        {q:"Book?", a:["Книга","Ручка","Лист"], c:0},
-        {q:"Dog?", a:["Кот","Собака","Волк"], c:1},
-        {q:"Sky?", a:["Земля","Небо","Трава"], c:1}
+        {q:"Jump?", a:["Бег","Прыжок","Сон"], c:1}
     ];
+
+    function toggleLang() {
+        lang = (lang === 'ru') ? 'en' : 'ru';
+        document.getElementById('t-title').innerText = ui[lang].title;
+        document.getElementById('l-hero').innerText = ui[lang].hero;
+        document.getElementById('l-col').innerText = ui[lang].col;
+        document.getElementById('l-win').innerText = ui[lang].win;
+        document.getElementById('l-lose').innerText = ui[lang].lose;
+        document.getElementById('t-qs').innerText = ui[lang].qs;
+        document.getElementById('t-pre').innerText = ui[lang].pre;
+        document.getElementById('t-copy').innerText = ui[lang].copy;
+        render();
+    }
 
     function render() {
         const c = document.getElementById('q-list');
         c.innerHTML = '';
         qs.forEach((q, i) => {
             const d = document.createElement('div'); d.className = 'card';
-            d.innerHTML = `<input type="text" value="${q.q}" oninput="qs[${i}].q=this.value;draw()">
-            <div style="display:flex;gap:2px"><input type="text" value="${q.a[0]}" oninput="qs[${i}].a[0]=this.value;draw()"><input type="text" value="${q.a[1]}" oninput="qs[${i}].a[1]=this.value;draw()"><input type="text" value="${q.a[2]}" oninput="qs[${i}].a[2]=this.value;draw()"></div>`;
+            d.innerHTML = `<input type="text" value="${q.q}" oninput="qs[${i}].q=this.value;refresh()">
+            <div style="display:flex;gap:2px"><input type="text" value="${q.a[0]}" oninput="qs[${i}].a[0]=this.value;refresh()"><input type="text" value="${q.a[1]}" oninput="qs[${i}].a[1]=this.value;refresh()"><input type="text" value="${q.a[2]}" oninput="qs[${i}].a[2]=this.value;refresh()"></div>`;
             c.appendChild(d);
         });
     }
 
     function getCode() {
-        const hero = document.getElementById('h-url').value;
+        const h = document.getElementById('h-url').value;
         const col = document.getElementById('h-col').value;
+        const wM = document.getElementById('m-win').value;
+        const lM = document.getElementById('m-lose').value;
         const data = JSON.stringify(qs);
 
-        // В этом коде координаты ВШИТЫ жестко. Больше никакой "одной полосы".
-        return `<iframe srcdoc='<!DOCTYPE html><html><head><meta charset="UTF-8"><style>body,html{margin:0;padding:0;overflow:hidden;background:transparent;height:100vh;width:100vw;font-family:sans-serif}canvas{display:block}#ui{position:absolute;top:10px;left:10px;z-index:10;display:flex;gap:5px}.b{background:rgba(0,0,0,0.7);color:#fff;padding:5px 10px;border-radius:10px;border:1px solid ${col};font-size:12px}#q{position:absolute;top:30%;left:50%;transform:translate(-50%,-50%);background:rgba(15,15,15,0.95);border:2px solid ${col};border-radius:20px;padding:20px;width:260px;color:#fff;text-align:center;display:none;z-index:20}.bt{background:rgba(255,255,255,0.1);border:1px solid ${col};color:#fff;width:100%;padding:10px;margin:5px 0;border-radius:10px;cursor:pointer;font-weight:bold}</style></head><body><div id="ui"><div class="b" id="hp">❤️ ❤️ ❤️</div><div class="b" id="st">STEP: 1/14</div></div><div id="q"><div id="qt" style="font-size:18px;margin-bottom:15px"></div><div id="as"></div></div><canvas id="c"></canvas><script>const img=new Image();img.src="${hero}";const cvs=document.getElementById("c"),ctx=cvs.getContext("2d"),tasks=${data};let cur=0,liv=3,jT=1,sP={x:0,y:0},tP={x:0,y:0};function rs(){cvs.width=window.innerWidth;cvs.height=window.innerHeight}window.onresize=rs;rs();const pls=[];for(let i=0;i<15;i++){pls.push({x:20+(i*55),y:cvs.height-60-(i*25)})}let hP={x:pls[0].x,y:pls[0].y};function dP(x,y,a){ctx.save();ctx.translate(x,y);ctx.fillStyle=a?"${col}":"rgba(80,80,80,0.3)";ctx.beginPath();ctx.moveTo(0,0);ctx.lineTo(25,-12);ctx.lineTo(50,0);ctx.lineTo(25,12);ctx.closePath();ctx.fill();ctx.restore()}function dH(x,y,t){const b=Math.sin(t*Math.PI)*40;if(img.complete)ctx.drawImage(img,x,y-b-55,50,60)}function u(){ctx.clearRect(0,0,cvs.width,cvs.height);pls.forEach((p,i)=>dP(p.x,p.y,i<=cur));if(jT<1){jT+=0.05;hP.x=sP.x+(tP.x-sP.x)*jT;hP.y=sP.y+(tP.y-sP.y)*jT;if(jT>=1){jT=1;if(cur<14)uQ();else alert("WIN!")}}dH(hP.x,hP.y,jT);requestAnimationFrame(u)}function uQ(){document.getElementById("st").innerText="STEP: "+(cur+1)+"/14";document.getElementById("q").style.display="block";document.getElementById("qt").innerText=tasks[cur].q;const b=document.getElementById("as");b.innerHTML="";tasks[cur].a.forEach((t,i)=>{const btn=document.createElement("button");btn.className="bt";btn.innerText=t;btn.onclick=()=>{if(i===tasks[cur].c){document.getElementById("q").style.display="none";sP={x:hP.x,y:hP.y};cur++;tP={x:pls[cur].x,y:pls[cur].y};jT=0}else{liv--;document.getElementById("hp").innerText="❤️ ".repeat(liv);if(liv<=0)location.reload()}};b.appendChild(btn)})}uQ();u();<\/script></body></html>' style='width:100%;height:600px;border:none;'></iframe>`;
+        return `<iframe srcdoc='<!DOCTYPE html><html><head><meta charset="UTF-8"><style>body,html{margin:0;padding:0;overflow:hidden;background:transparent;height:100vh;width:100vw;font-family:sans-serif}canvas{display:block}#ui{position:absolute;top:10px;left:10px;z-index:10;display:flex;gap:5px}.b{background:rgba(0,0,0,0.7);color:#fff;padding:5px 10px;border-radius:10px;border:1px solid ${col};font-size:12px}#q{position:absolute;top:30%;left:50%;transform:translate(-50%,-50%);background:rgba(15,15,15,0.95);border:2px solid ${col};border-radius:20px;padding:25px;width:280px;color:#fff;text-align:center;display:none;z-index:20}.bt{background:rgba(255,255,255,0.1);border:1px solid ${col};color:#fff;width:100%;padding:10px;margin:5px 0;border-radius:10px;cursor:pointer;font-weight:bold;transition:0.2s}.bt:hover{background:${col}88}</style></head><body><div id="ui"><div class="b" id="hp">❤️ ❤️ ❤️</div><div class="b" id="st">STEP: 1/14</div></div><div id="q"><div id="qt" style="font-size:18px;margin-bottom:15px;font-weight:bold"></div><div id="as"></div></div><canvas id="c"></canvas><script>const img=new Image();img.src="${h}";const cvs=document.getElementById("c"),ctx=cvs.getContext("2d"),tasks=${data};let cur=0,liv=3,jT=1,sP={x:0,y:0},tP={x:0,y:0};function rs(){cvs.width=window.innerWidth;cvs.height=window.innerHeight}window.onresize=rs;rs();const pls=[];for(let i=0;i<15;i++){pls.push({x:20+(i*55),y:cvs.height-60-(i*25)})}let hP={x:pls[0].x,y:pls[0].y};function dP(x,y,a){ctx.save();ctx.translate(x,y);ctx.fillStyle=a?"${col}":"rgba(80,80,80,0.3)";ctx.beginPath();ctx.moveTo(0,0);ctx.lineTo(25,-12);ctx.lineTo(50,0);ctx.lineTo(25,12);ctx.closePath();ctx.fill();ctx.restore()}function dH(x,y,t){const b=Math.sin(t*Math.PI)*40;if(img.complete)ctx.drawImage(img,x,y-b-55,50,60)}function u(){ctx.clearRect(0,0,cvs.width,cvs.height);pls.forEach((p,i)=>dP(p.x,p.y,i<=cur));if(jT<1){jT+=0.05;hP.x=sP.x+(tP.x-sP.x)*jT;hP.y=sP.y+(tP.y-sP.y)*jT;if(jT>=1){jT=1;if(cur<14)uQ();else f(true)}}dH(hP.x,hP.y,jT);requestAnimationFrame(u)}function uQ(){document.getElementById("st").innerText="STEP: "+(cur+1)+"/14";document.getElementById("q").style.display="block";document.getElementById("qt").innerText=tasks[cur].q;const b=document.getElementById("as");b.innerHTML="";tasks[cur].a.forEach((t,i)=>{const btn=document.createElement("button");btn.className="bt";btn.innerText=t;btn.onclick=()=>{if(i===tasks[cur].c){document.getElementById("q").style.display="none";sP={x:hP.x,y:hP.y};cur++;tP={x:pls[cur].x,y:pls[cur].y};jT=0}else{liv--;document.getElementById("hp").innerText="❤️ ".repeat(liv);if(liv<=0)f(false)}};b.appendChild(btn)})}function f(win){const box=document.getElementById("q");box.style.display="block";box.innerHTML="<h2>"+(win?"${wM}":"${lM}")+"</h2><button class=\'bt\' onclick=\'location.reload()\'>RESTART</button>"}uQ();u();<\/script></body></html>' style='width:100%;height:600px;border:none;'></iframe>`.replace(/\n/g, '');
     }
 
-    function draw() {
+    function refresh() {
         document.getElementById('f-box').innerHTML = getCode();
     }
 
     function copyIt() {
         const el = document.createElement('textarea'); el.value = getCode();
         document.body.appendChild(el); el.select(); document.execCommand('copy');
-        document.body.removeChild(el); alert("Код скопирован! Вставляй в Genially.");
+        document.body.removeChild(el); alert(ui[lang].alert);
     }
 
-    render(); draw();
+    render(); refresh();
 </script>
 </body>
 </html>
